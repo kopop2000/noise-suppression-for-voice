@@ -1,0 +1,41 @@
+name: Build Noise Suppression DLL
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Позволяет запускать вручную
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup CMake
+      uses: jwlawson/actions-setup-cmake@v1
+      with:
+        cmake-version: '3.25.x'
+        
+    - name: Configure Project
+      run: |
+        mkdir build
+        cd build
+        cmake .. -G "Visual Studio 17 2022" -A x64
+        
+    - name: Build Project
+      run: |
+        cd build
+        cmake --build . --config Release --target noise_suppression
+        
+    - name: Upload DLL Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: noise-suppression-dll
+        path: |
+          build/Release/noise_suppression.dll
+          build/Release/noise_suppression_vst3.vst3/**/*
+        retention-days: 30
